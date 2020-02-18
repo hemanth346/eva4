@@ -4,7 +4,7 @@
 
 1. Get the setup right
     1. See/know the data 
-> (skipping for mnist)
+        > (skipping for mnist)
         1. Set basic transformation(to_tensor)
         1. Decide RF for edges/gradients
         1. Get Mean and standard deviation values of the dataset
