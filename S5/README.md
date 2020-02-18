@@ -4,7 +4,7 @@
 
 1. Get the setup right
     1. See/know the data 
-> (skipping for mnist)
+        > (skipping for mnist)
         1. Set basic transformation(to_tensor)
         1. Decide RF for edges/gradients
         1. Get Mean and standard deviation values of the dataset
@@ -51,6 +51,6 @@
 1. Best Test Accuracy: 98.85 
 
 ### Analysis
-1. Achived target
+1. Achieved target
 1. Good Model. No under-fitting
 1. Is capable if pushed further (more epochs and/or augmented data)
