@@ -11,9 +11,9 @@ scrapped online, created a dataset of
 1. 400k fg_bg_mask images (single channel, grayscale)
   - by overlaying corresponding foreground mask at the same postion on black canvas of bg shape
 1. 400k depth images (single channel, grayscale)
-  - Generated using pretrained weights of a SOTA model [Paper - High Quality Monocular Depth Estimation via Transfer Learning](https://arxiv.org/abs/1812.11941)
+  - Generated using pretrained weights of a SOTA model [Paper - High Quality Monocular Depth Estimation via Transfer Learning](https://arxiv.org/abs/1812.11941 'https://arxiv.org/abs/1812.11941')
 
-  - bg and fg are choosen keeping in mind the pretrained weights available for the mentioned model. Refer [repo](https://github.com/ialhashim/DenseDepth) for weights and model details
+  - bg and fg are choosen keeping in mind the pretrained weights available for the mentioned model. Refer [repo](https://github.com/ialhashim/DenseDepth 'https://github.com/ialhashim/DenseDepth') for weights and model details
 
 
 #### Dataset is available for download using below link
@@ -64,6 +64,7 @@ With below tree structure
       ...
     -- bg3
     ...
+  -- annotations.txt
 ```
 
 ```
@@ -83,28 +84,142 @@ With below tree structure
 ```
 
 ### Overview
-#
-![image](image)
+###### bg
+![bg_collage](https://github.com/hemanth346/eva4/upload/master/S15A/images/bg.png?raw=true 'https://github.com/hemanth346/eva4/upload/master/S15A/images/bg.png')
 
-Stats - Mean, std
+###### fg
+![fg_collage](https://github.com/hemanth346/eva4/upload/master/S15A/images/fg.png?raw=true 'https://github.com/hemanth346/eva4/upload/master/S15A/images/fg.png')
 
+###### fg_masks
+![fg_masks_collage](https://github.com/hemanth346/eva4/upload/master/S15A/images/fg_masks.png?raw=true 'https://github.com/hemanth346/eva4/upload/master/S15A/images/fg_masks.png')
+
+###### fg_bg
+![fg_bg_collage](https://github.com/hemanth346/eva4/upload/master/S15A/images/fg_bg.png?raw=true 'https://github.com/hemanth346/eva4/upload/master/S15A/images/fg_bg.png')
+
+###### fg_bg_masks
+![fg_bg_masks_collage](https://github.com/hemanth346/eva4/upload/master/S15A/images/fg_bg_mask.png?raw=true 'https://github.com/hemanth346/eva4/upload/master/S15A/images/fg_bg_mask.png')
+###### depth_maps
+
+![depth_maps_collage](https://github.com/hemanth346/eva4/upload/master/S15A/images/fg_bg_depth.png 'https://github.com/hemanth346/eva4/upload/master/S15A/images/fg_bg_depth.png')
+
+## Dataset statistics
+
+Uncompressed size : 1.8 GB
+
+Kinds of images : bg, fg, fg_masks, fg_bg, fg_bg_masks, depth_maps
+
+1. bg
+  - 100 images, resized to (224,224)
+1. fg
+  - 100 transparent images with alpha channel(RGBA)
+  - resized to (100,70) (random resize can be can also be configured)
+1. fg_masks
+  - 100 masks for respective fg images, created using alpha channels.
+  - resized to (100,70)
 1. fg_bg
-  ```
-  Mean: [0.5, 0.5, 0.5]
+  - 400k jpeg images of shape (224, 224, 3)
+    - 100(bg) * 100(fg) * 2(flip) * 20(random overlay of fg over bg)
 
-  Std: [0.5, 0.5, 0.5]
+  ```
+  Mean: (0.5, 0.5, 0.5)
+
+  Std: (0.5, 0.5, 0.5)
 
   ```
 
 1. fg_bg_masks
+  - 400k single channel jpeg images of shape (224, 224)
+    - 100(bg) * 100(fg_masks) * 2(flip) * 20(overlay of fg_masks over black canvas)
+
   ```
-  Mean: [0.5]
-  Std: [0.5]
+  Mean: (0.5, )
+  Std: (0.5, )
   ```
 
 1. depth_maps
+  - 400k single channel jpeg images of shape (112, 112)
+    - depth predictions for respective fg_bg image
+
   ```
-  Mean: [0.5]
-  Std: [0.5]
+  Mean: (0.5, )
+  Std: (0.5, )
+  ```
+---
+
+### Creating Dataset:
+
+- bg and transparent fg images were downloaded using image crawler.
+  > Initially used GIMP to add alpha channel, remove background(fg) and create mask(fg_mask). But the process is not required as transparent images are readily availabe and masks can be created using PIL or Opencv.
+- **Creating mask :** Used Opencv thresholding on alpha channel of fg image to create fg_mask for respective image
+  > Opencv by default will not read alphachannel, we have to pass a flag to make sure alphachannels are read
+
+  ```
+fg  =  cv2.imread(fg_img, -1) # flag  for cv2.IMREAD_UNCHANGED
+_,  fg_mask  =  cv2.threshold(im[:,  :,  3],  0,  255,  cv2.THRESH_BINARY)
+```
+- **Creating flip images :** Used Opencv method filp method to flip the images horizontally.
+
+  ```
+  fg_flip = cv2.flip(fg, flipCode=1)
+  mask_flip = cv2.flip(mask, flipCode=1)
+  ```
+      flipcode = 0: flip vertically
+      flipcode > 0: flip horizontally
+      flipcode < 0: flip vertically and horizontally
+
+- **Overlaying fg over bg :** Created a function which takes in bg and fg images and overlays them to create fg_bg and its mask fg_bg_mask as well. Overlay is done by playing with alpha values on each of the channel, retaining bg pixels in transparent part and where not transparent making bg pixels zero and retaining fg pixels.
+
+  > Below is the core functionality
+
+  ```
+  alpha_fg = fg[:, :, 3] / 255.0
+  alpha_bg = 1.0 - alpha_fg
+
+  # Not disturbing orignal images
+  fg_bg = bg.copy()
+  # creating canvas for mask, can use PIL new image as well
+  black = bg * np.zeros(bg.shape, dtype=np.int8)
+
+  for c in range(0, 3):
+      fg_bg[y1:y2, x1:x2, c] = (alpha_fg * fg[:, :, c] +
+                                alpha_bg * fg_bg[y1:y2, x1:x2, c])
   ```
 
+
+- **Creating Depth maps :** Modified authors repo to work for single image and created depth_maps for generated fg_bg images on the fly.
+```
+def predict_single_file(img_path, model, minDepth=10, maxDepth=1000):
+    # normalize
+    images = np.clip(np.asarray(Image.open(img_path), dtype=float) / 255, 0, 1)
+    # Support multiple RGBs, one RGB image, even grayscale
+    if len(images.shape) < 3: image = np.stack((images,images,images), axis=2)
+    if len(images.shape) < 4: image = images.reshape((1, images.shape[0], images.shape[1], images.shape[2]))
+    # compute predictions, expects 4D image
+    outputs = model.predict(image)
+    # Put in expected range
+    DepthNorm = maxDepth/outputs
+    outputs =  np.clip(DepthNorm, minDepth, maxDepth) / maxDepth
+    # standarsize and covert to 255 range
+    rescaled = outputs[0][:, :, 0]
+    rescaled = rescaled - np.min(rescaled)
+    rescaled = rescaled / np.max(rescaled)
+    rescaled = rescaled * 255
+    return rescaled
+```
+
+
+Generating above said images for single background took around 4 mins. `i.e. ~ 4  minutes for 4000 images.`
+
+I've faced issues with file write from colab to Drive which has taken away most of the time, since it won't throw any error only files will not be avialble in drive once colab runtime finished.
+
+
+
+
+[Link to Dataset creation Notebook](https://github.com/hemanth346/eva4/blob/master/S15A/Dataset2_nocompression.ipynb 'https://github.com/hemanth346/eva4/blob/master/S15A/Dataset2_nocompression.ipynb')
+
+
+[Link to Compressed_Dataset creation Notebook](https://github.com/hemanth346/eva4/blob/master/S15A/Dataset.ipynb 'https://github.com/hemanth346/eva4/blob/master/S15A/Dataset.ipynb')
+
+> Note: I've used shutil to compress which seems to stop writing to drive after some time and requires a flush umount and force remount. Refer [colab - github issue](https://github.com/googlecolab/colabtools/issues/287 'https://github.com/googlecolab/colabtools/issues/287'). Another option that can be added is to write each image to ZipFile instance on the go. Not tried here.
+
+[Link to notebook for calculating Data statistics](https://github.com/hemanth346/eva4/blob/master/S15A/Depth_DataStats.ipynb 'https://github.com/hemanth346/eva4/blob/master/S15A/Depth_DataStats.ipynb')
