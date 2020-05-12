@@ -149,63 +149,63 @@ Kinds of images : bg, fg, fg_masks, fg_bg, fg_bg_masks, depth_maps
 ### Creating Dataset:
 
 - bg and transparent fg images were downloaded using image crawler.
+  
   > Initially used GIMP to add alpha channel, remove background(fg) and create mask(fg_mask). But the process is not required as transparent images are readily availabe and masks can be created using PIL or Opencv.
+  
 - **Creating mask :** Used Opencv thresholding on alpha channel of fg image to create fg_mask for respective image
+  
   > Opencv by default will not read alphachannel, we have to pass a flag to make sure alphachannels are read
 
-  ```
-fg  =  cv2.imread(fg_img, -1) # flag  for cv2.IMREAD_UNCHANGED
-_,  fg_mask  =  cv2.threshold(im[:,  :,  3],  0,  255,  cv2.THRESH_BINARY)
-```
+      fg  =  cv2.imread(fg_img, -1) # flag  for cv2.IMREAD_UNCHANGED
+      _,  fg_mask  =  cv2.threshold(im[:,  :,  3],  0,  255,  cv2.THRESH_BINARY)
+
 - **Creating flip images :** Used Opencv method filp method to flip the images horizontally.
 
-  ```
-  fg_flip = cv2.flip(fg, flipCode=1)
-  mask_flip = cv2.flip(mask, flipCode=1)
-  ```
+      fg_flip = cv2.flip(fg, flipCode=1)
+      mask_flip = cv2.flip(mask, flipCode=1)
+
       flipcode = 0: flip vertically
       flipcode > 0: flip horizontally
       flipcode < 0: flip vertically and horizontally
 
+  
+
 - **Overlaying fg over bg :** Created a function which takes in bg and fg images and overlays them to create fg_bg and its mask fg_bg_mask as well. Overlay is done by playing with alpha values on each of the channel, retaining bg pixels in transparent part and where not transparent making bg pixels zero and retaining fg pixels.
 
-  > Below is the core functionality
+> Below is the core functionality
 
-  ```
-  alpha_fg = fg[:, :, 3] / 255.0
-  alpha_bg = 1.0 - alpha_fg
+    alpha_fg = fg[:, :, 3] / 255.0
+    alpha_bg = 1.0 - alpha_fg
 
-  # Not disturbing orignal images
-  fg_bg = bg.copy()
-  # creating canvas for mask, can use PIL new image as well
-  black = bg * np.zeros(bg.shape, dtype=np.int8)
+    # Not disturbing orignal images
+    fg_bg = bg.copy()
+    # creating canvas for mask, can use PIL new image as well
+    black = bg * np.zeros(bg.shape, dtype=np.int8)
 
-  for c in range(0, 3):
-      fg_bg[y1:y2, x1:x2, c] = (alpha_fg * fg[:, :, c] +
-                                alpha_bg * fg_bg[y1:y2, x1:x2, c])
-  ```
+    for c in range(0, 3):
+        fg_bg[y1:y2, x1:x2, c] = (alpha_fg * fg[:, :, c] +
+                                  alpha_bg * fg_bg[y1:y2, x1:x2, c])
 
 
 - **Creating Depth maps :** Modified authors repo to work for single image and created depth_maps for generated fg_bg images on the fly.
-```
-def predict_single_file(img_path, model, minDepth=10, maxDepth=1000):
-    # normalize
-    images = np.clip(np.asarray(Image.open(img_path), dtype=float) / 255, 0, 1)
-    # Support multiple RGBs, one RGB image, even grayscale
-    if len(images.shape) < 3: image = np.stack((images,images,images), axis=2)
-    if len(images.shape) < 4: image = images.reshape((1, images.shape[0], images.shape[1], images.shape[2]))
-    # compute predictions, expects 4D image
-    outputs = model.predict(image)
-    # Put in expected range
-    DepthNorm = maxDepth/outputs
-    outputs =  np.clip(DepthNorm, minDepth, maxDepth) / maxDepth
-    # standarsize and covert to 255 range
-    rescaled = outputs[0][:, :, 0]
-    rescaled = rescaled - np.min(rescaled)
-    rescaled = rescaled / np.max(rescaled)
-    rescaled = rescaled * 255
-    return rescaled
-```
+
+      def predict_single_file(img_path, model, minDepth=10, maxDepth=1000):
+          # normalize
+          images = np.clip(np.asarray(Image.open(img_path), dtype=float) / 255, 0, 1)
+          # Support multiple RGBs, one RGB image, even grayscale
+          if len(images.shape) < 3: image = np.stack((images,images,images), axis=2)
+          if len(images.shape) < 4: image = images.reshape((1, images.shape[0], images.shape[1], images.shape[2]))
+          # compute predictions, expects 4D image
+          outputs = model.predict(image)
+          # Put in expected range
+          DepthNorm = maxDepth/outputs
+          outputs =  np.clip(DepthNorm, minDepth, maxDepth) / maxDepth
+          # standarsize and covert to 255 range
+          rescaled = outputs[0][:, :, 0]
+          rescaled = rescaled - np.min(rescaled)
+          rescaled = rescaled / np.max(rescaled)
+          rescaled = rescaled * 255
+          return rescaled
 
 
 Generating above said images for single background took around 4 mins. `i.e. ~ 4  minutes for 4000 images.`
