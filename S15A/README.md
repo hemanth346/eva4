@@ -85,22 +85,22 @@ With below tree structure
 
 ### Overview
 ###### bg
-![bg_collage](https://github.com/hemanth346/eva4/upload/master/S15A/images/bg.png?raw=true 'https://github.com/hemanth346/eva4/blob/master/S15A/images/bg.png')
+![bg_collage](https://github.com/hemanth346/eva4/blob/master/S15A/images/bg.png?raw=true 'https://github.com/hemanth346/eva4/blob/master/S15A/images/bg.png')
 
 ###### fg
-![fg_collage](https://github.com/hemanth346/eva4/upload/master/S15A/images/fg.png?raw=true 'https://github.com/hemanth346/eva4/blob/master/S15A/images/fg.png')
+![fg_collage](https://github.com/hemanth346/eva4/blob/master/S15A/images/fg.png?raw=true 'https://github.com/hemanth346/eva4/blob/master/S15A/images/fg.png')
 
 ###### fg_masks
-![fg_masks_collage](https://github.com/hemanth346/eva4/upload/master/S15A/images/fg_masks.png?raw=true 'https://github.com/hemanth346/eva4/blob/master/S15A/images/fg_masks.png')
+![fg_masks_collage](https://github.com/hemanth346/eva4/blob/master/S15A/images/fg_masks.png?raw=true 'https://github.com/hemanth346/eva4/blob/master/S15A/images/fg_masks.png')
 
 ###### fg_bg
-![fg_bg_collage](https://github.com/hemanth346/eva4/upload/master/S15A/images/fg_bg.png?raw=true 'https://github.com/hemanth346/eva4/blob/master/S15A/images/fg_bg.png')
+![fg_bg_collage](https://github.com/hemanth346/eva4/blob/master/S15A/images/fg_bg.png?raw=true 'https://github.com/hemanth346/eva4/blob/master/S15A/images/fg_bg.png')
 
 ###### fg_bg_masks
-![fg_bg_masks_collage](https://github.com/hemanth346/eva4/upload/master/S15A/images/fg_bg_mask.png?raw=true 'https://github.com/hemanth346/eva4/blob/master/S15A/images/fg_bg_mask.png')
+![fg_bg_masks_collage](https://github.com/hemanth346/eva4/blob/master/S15A/images/fg_bg_mask.png?raw=true 'https://github.com/hemanth346/eva4/blob/master/S15A/images/fg_bg_mask.png')
 ###### depth_maps
 
-![depth_maps_collage](https://github.com/hemanth346/eva4/upload/master/S15A/images/fg_bg_depth.png 'https://github.com/hemanth346/eva4/blob/master/S15A/images/fg_bg_depth.png')
+![depth_maps_collage](https://github.com/hemanth346/eva4/blob/master/S15A/images/fg_bg_depth.png 'https://github.com/hemanth346/eva4/blob/master/S15A/images/fg_bg_depth.png')
 
 ## Dataset statistics
 
