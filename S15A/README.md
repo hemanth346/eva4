@@ -222,4 +222,72 @@ I've faced issues with file write from colab to Drive which has taken away most 
 
 > Note: I've used shutil to compress which seems to stop writing to drive after some time and requires a flush umount and force remount. Refer [colab - github issue](https://github.com/googlecolab/colabtools/issues/287 'https://github.com/googlecolab/colabtools/issues/287'). Another option that can be added is to write each image to ZipFile instance on the go. Not tried here.
 
+
+### Calculating Mean and std:
+  Calculting mean is straight forward, count all corresponsing pixel values and divide by number of pixels.
+  
+  There are 2 approaches that are widely used to calculate std, for huge image datasets
+  
+    1. Averaging samples of the std from mini batches
+    1. Iterate over dataset twice
+   
+   I've tried both and chose to iterate twice, since the values will be accurate here and since this is just one time process, the computation can be ignored. But if new data is being added regularly then this becomes not possible. Averaging over batches will be used there.
+
+##### Method 1 (close to accurate)
+
+To calculate the standard deviation by averaging samples of the std from mini batches. While very close to the true std, it’s not calculated exactly and can be leveraged if time/computation limitations. But in production settings where new data is added on daily basis this will work.
+
+    def get_batchwise_avg_mean_std(dataset, batch_size=50):
+        print(len(dataset))
+        loader = DataLoader(dataset, 
+                          batch_size=batch_size, 
+                          shuffle=True)
+        mean = 0.
+        std = 0.
+        nb_samples = 0.
+        for data in loader:
+            batch_samples = data.size(0)
+            data = data.view(batch_samples, data.size(1), -1)
+            mean += data.mean(2).sum(0)
+            std += data.std(2).sum(0)
+            nb_samples += batch_samples
+
+        mean /= nb_samples
+        std /= nb_samples
+        # return mean, std
+        print(mean, std)
+
+
+##### Method 2 :
+  Calculate mean first and then calculate variance and std using the mean
+
+    def get_mean(dataset, batch_size=50):
+        mean = 0.0
+        loader = DataLoader(dataset, 
+                          batch_size=batch_size, 
+                          shuffle=True)
+        for images in loader:
+            batch_size = images.size(0) 
+            images = images.view(batch_size, images.size(1), -1)
+            mean += images.mean(2).sum(0)
+        mean = mean / len(loader.dataset)
+        return mean
+
+    def get_std(dataset, mean, batch_size=50):
+        var = 0.0
+        loader = DataLoader(dataset, 
+                          batch_size=batch_size, 
+                          shuffle=True)
+        for images in loader:
+            batch_samples = images.size(0)
+            # convert into 3 flattened channels
+            images = images.view(batch_samples, images.size(1), -1)
+            # take mean for each of these channels, substract from image channels
+            # square them and add across channels to get variance
+            var += ((images - mean.unsqueeze(1))**2).sum([0,2])
+        # square root over total pixels
+        std = torch.sqrt(var / (len(dataset)*dataset[0].shape[1]*dataset[0].shape[2]))
+        return std
+
+
 [Link to notebook for calculating Data statistics](https://github.com/hemanth346/eva4/blob/master/S15A/Depth_DataStats.ipynb 'https://github.com/hemanth346/eva4/blob/master/S15A/Depth_DataStats.ipynb')
