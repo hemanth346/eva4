@@ -124,27 +124,23 @@ Kinds of images : bg, fg, fg_masks, fg_bg, fg_bg_masks, depth_maps
 1. fg_bg
     - 400k jpeg images of shape (224, 224, 3)
       - 100(bg) * 100(fg) * 2(flip) * 20(random overlay of fg over bg)
-
       ```
       Mean: [0.6045, 0.5874, 0.5730]
 
       Std: [0.2815, 0.2813, 0.2814]
-
       ```
 
 1. fg_bg_masks
   - 400k single channel jpeg images of shape (224, 224)
     - 100(bg) * 100(fg_masks) * 2(flip) * 20(overlay of fg_masks over black canvas)
-
       ```
       Mean: [0.0563]
       Std: [0.2252]
       ```
 
 1. depth_maps
-  - 400k single channel jpeg images of shape (112, 112)
+  - 400k single channel jpeg images of shape (224, 224)
     - depth predictions for respective fg_bg image
-
       ```
       Mean: [0.3743]
       Std: [0.1962]
